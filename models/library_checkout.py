@@ -6,6 +6,18 @@ class Checkout(models.Model):
     _description = 'Checkout Request'
     _inherit = ['mail.thread', 'mail.activity.mixin']
 
+    @api.multi
+    def action_open(self):
+        self.ensure_one()
+        for rec in self:
+            rec.state = 'open'
+
+    @api.multi
+    def action_done(self):
+        self.ensure_one()
+        for rec in self:
+            rec.state = 'done'
+
     member_id = fields.Many2one(
         'library.member',
         'Library Member',
@@ -30,8 +42,8 @@ class Checkout(models.Model):
     # to add in the class Checkout:
     @api.model
     def _default_stage(self):
-        Stage = self.env['library.checkout.stage']
-        return Stage.search([], limit=1)
+        Stage = self.env['library.checkout.stage'].search([], limit=1)
+        return Stage
 
     @api.model
     def _group_expand_stage_id(self, stages, domain, order):
@@ -42,7 +54,7 @@ class Checkout(models.Model):
      default=_default_stage,
      group_expand='_group_expand_stage_id')
 
-    state = fields.Selection(related='stage_id.state')
+    state = fields.Selection(related='stage_id.state', store=True)
 
     @api.onchange('member_id')
     def onchange_member_id(self):

@@ -1,4 +1,4 @@
-<odoo noupdate="1">
+<odoo noupdate="0">
   <record id="stage_10" model="library.checkout.stage">
       <field name="name">Draft</field>
       <field name="sequence">10</field>

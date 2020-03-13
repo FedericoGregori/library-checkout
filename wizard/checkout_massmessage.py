@@ -1,4 +1,8 @@
 from odoo import api, exceptions, fields, models
+import logging
+
+_logger = logging.getLogger(__name__)
+
 
 class CheckoutMassMessage(models.TransientModel):
     _name = 'library.checkout.massmessage'
@@ -21,11 +25,29 @@ class CheckoutMassMessage(models.TransientModel):
 
     @api.multi
     def button_send(self):
+
         self.ensure_one()
+        if not self.checkout_ids:
+            raise exceptions.UserError(
+                'Select at least one Checkout to send messages to!')
+        if self.message_body == '<p><br></p>':
+            raise exceptions.UserError(
+                'Write a message body to send!')
+
         for checkout in self.checkout_ids:
             checkout.message_post(
                 body=self.message_body,
                 subject=self.message_subject,
                 subtype='mail.mt_comment',
             )
+            _logger.debug(
+                'Message on %d to followers: %s',
+                checkout.id,
+                checkout.message_follower_ids)
+
+        _logger.info(
+            'Posted %d messages to Checkouts: %s',
+            len(self.checkout_ids),
+            str(self.checkout_ids),
+        )
         return True

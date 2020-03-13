@@ -17,6 +17,11 @@
     <field name="model">library.checkout</field>
     <field name="arch" type="xml">
       <form>
+        <header>
+          <button name="action_open" type="object" string="Open" states="new" class="btn btn-info" />
+          <button name="action_done" type="object" string="Done" states="open" class="btn btn-success" />
+          <field name="state" widget="statusbar" statusbar_visible="new,open,done"/>
+        </header>
         <sheet>
           <group>
             <field name="member_id" />
