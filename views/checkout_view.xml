@@ -1,42 +1,112 @@
 <?xml version="1.0"?>
 <odoo>
 
-  <record id="view_tree_checkout" model="ir.ui.view">
-    <field name="name">Checkout Tree</field>
-    <field name="model">library.checkout</field>
-    <field name="arch" type="xml">
-        <tree>
-            <field name="request_date" />
-            <field name="member_id" />
-        </tree>
-    </field>
-  </record>
+    <record id="view_tree_checkout" model="ir.ui.view">
+        <field name="name">Checkout Tree</field>
+        <field name="model">library.checkout</field>
+        <field name="arch" type="xml">
+            <tree>
+                <field name="request_date"/>
+                <field name="member_id"/>
+            </tree>
+        </field>
+    </record>
 
-  <record id="view_form_checkout" model="ir.ui.view">
-    <field name="name">Checkout Form</field>
-    <field name="model">library.checkout</field>
-    <field name="arch" type="xml">
-      <form>
-        <header>
-          <button name="action_open" type="object" string="Open" states="new" class="btn btn-info" />
-          <button name="action_done" type="object" string="Done" states="open" class="btn btn-success" />
-          <field name="state" widget="statusbar" statusbar_visible="new,open,done"/>
-        </header>
-        <sheet>
-          <group>
-            <field name="member_id" />
-            <field name="request_date" />
-            <field name="user_id" />
-            <field name="line_ids" widget="many2many_tags"/>
-          </group>
-        </sheet>
-        <div class="oe_chatter">
-          <field name="message_follower_ids" widget="mail_followers"/>
-          <field name="activity_ids" widget="mail_activity"/>
-          <field name="message_ids" widget="mail_thread"/>
-        </div>
-      </form>
-    </field>
-  </record>
+    <act_window id="action_other_checkouts_button"
+                name="Open Other Checkouts"
+                res_model="library.checkout"
+                view_mode="tree,form"
+                domain="[('member_id', '=', default_member_id),
+                        ('state', 'in', ['open']),
+                        ('id', '!=', active_id)]" />
+
+    <record id="view_form_checkout" model="ir.ui.view">
+        <field name="name">Checkout Form</field>
+        <field name="model">library.checkout</field>
+        <field name="arch" type="xml">
+            <form>
+
+                <header>
+                    <!-- To add buttons and status widget -->
+                    <field name="state" invisible="True"/>
+                    <button name="button_done"
+                            type="object"
+                            string="Return Books"
+                            attrs="{'invisible':[('state','in',['new','done','cancel'])]}"
+                            class="oe_highlight"
+                            icon="fa-bell-o" />
+                    <!-- states="open,cancel" works as attrs=".." when using state field -->
+                    <!-- attrs=".." works with all view elements as fields -->
+                    <field name="stage_id" widget="statusbar" clickable="True" options="{'fold_field': 'fold'}"/>
+                </header>
+
+                <sheet>
+                    <!-- Smart buttons will go here... -->
+                    <div name="button_box" class="oe_button_box">
+                        <button class="oe_stat_button"
+                                icon="fa-tasks"
+                                help="Other checkouts pending return."
+                                type="action"
+                                name="%(action_other_checkouts_button)d"
+                                context="{'default_member_id': member_id}" >
+
+                                <field string="To Return"
+                                       name="num_other_checkouts"
+                                       widget="statinfo"
+                                />
+
+                        </button>
+                    </div>
+                    <!-- To add form content -->
+                    <field name="member_image" widget="image" class="oe_avatar"/>
+                    <div class="oe_title">
+                        <label for="member_id" class="oe_edit_only"/>
+                        <h1>
+                            <field name="member_id"/>
+                        </h1>
+                        <h3>
+                            <span class="oe_read_only">By </span>
+                            <label for="user_id" class="oe_edit_only"/>
+                            <field name="user_id" class="oe_inline"/>
+                        </h3>
+                    </div>
+
+                    <group name="group_top">
+                        <group name="group_col1"
+                               col="4"
+                               colspan="2"
+                               string="Group 1">
+                            <field name="user_id"/>
+                            <field name="state"/>
+                            <field name="checkout_date"/>
+                            <field name="closed_date" attrs="{'invisible':[('state', 'in', ['new', 'open'])]}"/>
+                        </group>
+                        <group name="group_col2" string="Group 2"/>
+                    </group>
+
+                    <notebook>
+                        <page string="Borrowed Books" name="page_lines">
+                            <field name="line_ids">
+                              <tree editable="bottom">
+                                <field name="book_id" />
+                              </tree>
+                              <form>
+                                <field name="book_id" />
+                              </form>
+                            </field>
+                        </page>
+                    </notebook>
+                </sheet>
+
+                <div class="oe_chatter">
+                    <!-- Discuss widgets -->
+                    <field name="message_follower_ids" widget="mail_followers"/>
+                    <field name="activity_ids" widget="mail_activity"/>
+                    <field name="message_ids" widget="mail_thread"/>
+                </div>
+
+            </form>
+        </field>
+    </record>
 
 </odoo>
