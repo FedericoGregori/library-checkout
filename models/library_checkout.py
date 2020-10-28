@@ -75,18 +75,6 @@ class Checkout(models.Model):
 
     state = fields.Selection(related='stage_id.state')
 
-    @api.onchange('member_id')
-    def onchange_member_id(self):
-        today = fields.Date.today()
-        if self.request_date != today:
-            self.request_date = fields.Date.today()
-            return {
-                'warning': {
-                    'title': 'Changed Request Date',
-                    'message': 'Request date changed to today.',
-                }
-            }
-
     # Smart Button
     num_other_checkouts = fields.Integer(compute='_compute_num_other_checkouts')
 
@@ -99,6 +87,13 @@ class Checkout(models.Model):
             ]
             rec.num_other_checkouts = self.search_count(domain)
 
+    num_books = fields.Integer(compute='_compute_num_books', store=True)
+
+    @api.depends('line_ids')
+    def _compute_num_books(self):
+        for book in self:
+            book.num_books = len(book.line_ids)
+            
 
 class CheckoutLine(models.Model):
     _name = 'library.checkout.line'
