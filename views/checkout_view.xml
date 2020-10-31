@@ -1,6 +1,110 @@
 <?xml version="1.0"?>
 <odoo>
 
+    <!-- Kanban View -->
+    <record id="view_kanban_checkout" model="ir.ui.view">
+        <field name="model">library.checkout</field>
+        <field name="arch" type="xml">
+            <kanban default_group_by="stage_id" class="o_kanban_small_collumn">
+                <!-- Fields to use in expressions -->
+                <field name="stage_id" />
+                <field name="id" />
+                <field name="line_ids" />
+                <field name="color" />
+                <field name="kanban_state" />
+                <field name="priority" />
+                <field name="message_partner_ids" />
+                <progressbar field="kanban_state" colors='{"done": "success", "blocked": "danger"}' />
+                <!-- Templates with HTML snippers to use -->
+                <templates>
+                    <!-- Define the kanban-box template -->
+                    <t t-name="kanban-box">
+                        <!-- HTML QWeb template -->
+                        <!-- Set the Kanban Card Color -->
+                        <div t-attf-class="
+                        oe_kanban_color_#{kanban_getcolor(record.color.raw_value)}
+                        oe_kanban_global_click">
+                            <div class="oe_kanban_content">
+                                <div class="o_kanban_record_top">
+                                    <!-- Top Content elements and fields go here -->
+                                    <div class="o_kanban_record_headings">
+                                        <div>
+                                            <strong>
+                                                <a type="open"><field name="member_id"/></a>
+                                            </strong>
+                                        </div>
+                                        <ul>
+                                            <li t-attf-class="oe_kanban_text_#{record.user_id.raw_value lt '2' ? 'black': 'red'}">
+                                                <field name="user_id"/>
+                                            </li>
+                                            <li><field name="request_date"/></li>
+                                        </ul>
+                                    </div>
+                                    <div class="o_dropdown_kanban dropdown">
+                                    <!-- Top-right drop down menu here -->
+                                        <a class="dropdown-toggle btn"
+                                           data-toggle="dropdown" role="button"
+                                           aria-label="Dropdown menu"
+                                           title="Dropdown menu"
+                                           href="#">
+                                            <span class="fa fa-ellipsis-v"/>
+                                        </a>
+                                        <div class="dropdown-menu" role="menu">
+                                            <!-- Edit and Delete actions, if available: -->
+                                            <t t-if="widget.editable">
+                                              <a role="menuitem" type="edit" class="dropdown-item">Edit</a>
+                                            </t>
+                                            <t t-if="widget.deletable">
+                                              <a role="menuitem" type="delete" class="dropdown-item">Delete</a>
+                                            </t>
+                                            <!-- Color picker option: -->
+                                            <ul class="oe_kanban_colorpicker" data-field="color"/>
+                                      </div>
+                                    </div>
+                                </div>
+                                <div class="o_kanban_record_body">
+                                    <t t-foreach="record.message_partner_ids.raw_value.slice(0, 3)" t-as="rec">
+                                        <img
+                                                t-att-src="kanban_image('res.partner', 'image_small', rec)"
+                                                t-att-alt="rec"
+                                                class="oe_avatar"
+                                                width="24"
+                                                height="24"
+                                        />
+                                    </t>
+                                </div>
+                                <div class="o_kanban_record_bottom">
+                                    <div class="oe_kanban_bottom_left">
+                                        <!-- Left hand footer -->
+                                        <field name="priority" widget="priority" />
+                                        <field name="activity_ids" widget="kanban_activity" />
+                                    </div>
+                                    <div class="oe_kanban_bottom_right">
+                                        <!-- Right hand footer -->
+                                         <t t-call="follower_avatars">
+                                            <em>Content testing the 0 magical variable</em>
+                                         </t>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="oe_clear" />
+                        </div>
+                        <!-- end of kanban color -->
+                    </t>
+                    <t t-name="follower_avatars">
+                        <div>
+                            <t t-foreach="record.message_partner_ids.raw_value.slice(0, 3)" t-as="rec">
+                                <img t-att-src="kanban_image('res.partner', 'image_small', rec)" t-att-alt="rec" class="oe_avatar" width="24" height="24" />
+                            </t>
+                            <t t-raw="0" />
+                        </div>
+                    </t>
+                </templates>
+
+            </kanban>
+        </field>
+    </record>
+
     <record id="view_filter_checkout" model="ir.ui.view">
         <field name="model">library.checkout</field>
         <field name="arch" type="xml">
@@ -85,11 +189,13 @@
 
                         </button>
                     </div>
+                    <field name="kanban_state" widget="state_selection" class="oe_right"/>
                     <!-- To add form content -->
                     <field name="member_image" widget="image" class="oe_avatar"/>
                     <div class="oe_title">
                         <label for="member_id" class="oe_edit_only"/>
                         <h1>
+                            <field name="priority" widget="priority" />
                             <field name="member_id"/>
                         </h1>
                         <h3>

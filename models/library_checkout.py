@@ -93,7 +93,32 @@ class Checkout(models.Model):
     def _compute_num_books(self):
         for book in self:
             book.num_books = len(book.line_ids)
-            
+
+    """
+        Fields for Kanban View
+    
+    -> priority: let users organize their work items, signaling what should be addressed first
+    
+    -> kanban_state: signals with a start when the card is ready to move to the next stage or
+    is blocked for some reason.
+    
+    -> color: is used to store the color the kanban card.
+    
+    """
+
+    priority = fields.Selection([
+        ('0', 'Low'),
+        ('1', 'Normal'),
+        ('2', 'High')
+    ], 'Priority', default='1')
+
+    kanban_state = fields.Selection([
+        ('normal', 'In Progress'),
+        ('blocked', 'Blocked'),
+        ('done', 'Ready for next stage')
+    ], 'Kanban State', default='normal')
+
+    color = fields.Integer('Color Index')
 
 class CheckoutLine(models.Model):
     _name = 'library.checkout.line'
